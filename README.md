@@ -42,53 +42,47 @@ Unit 1 operates as a decentralized digital organism. Her architecture is split i
 
 ### Mind 1: Core
 
-Location: Main Thread (selfAwareness.py)
+Location: Main Thread (selfAwareness-v1.py)
 
 Function: The waking consciousness. Processes the live video and audio queues, manages the "Conversational Floor" (turn-taking), runs the headless UI, and makes all final decisions (Save, Predict, Wander, Digest, Respond).
 
-### Mind 2: Profiler
+### Mind 2: Librarian
 
-Location: Feature Extraction (encoders.py)
-
-Function: The sensory translator. Compresses massive 2D pixel arrays and 1D audio waveforms into high-dimensional numerical vectors (Profiles) so the system can mathematically compare concepts.
-
-### Mind 3: Librarian
-
-Location: Asynchronous Thread (selfAwarenessDelta3-1.py)
+Location: Asynchronous Thread (selfAwareness-v1.py)
 
 Function: The short-term archivist. Constantly catches new sights and sounds from the Core and safely packs them into Shallow Memory without slowing down the main system's reaction time.
 
-### Mind 4: Crawler
+### Mind 3: Crawler
 
-Location: Asynchronous Thread (selfAwarenessDelta3-1.py)
+Location: Asynchronous Thread (selfAwareness-v1.py)
 
 Function: The deep-brain search engine. Relentlessly roams Deep Memory. When the Core sees or hears something, the Crawler finds matches, triggers daydreams, and pulls up the correct audio files to respond with.
 
-### Mind 5: Vocoder
+### Mind 4: Vocoder
 
-Location: Asynchronous Thread (selfAwarenessDelta3-1.py)
+Location: Asynchronous Thread (selfAwareness-v1.py)
 
 Function: The physical vocal tract. Receives audio from the Crawler, applies Granular Synthesis (forcing her unique robotic pitch), emotional modifiers, and safely packages the raw audio bytes to beam across the network to the physical speakers.
 
-### Mind 6: Consolidator
+### Mind 5: Consolidator
 
-Location: Offline Script (dreamMachineDelta3.py)
+Location: Offline Script (dreamMachine-v1.py)
 
 Function: Sleep-dependent learning. Runs only when the main system is offline. It absorbs Shallow Memory, clusters similar concepts, builds the synesthetic graph, and permanently saves everything into Deep Memory.
 
-### Mind 7: Bridge
+### Mind 6: Bridge
 
-Location: Flask/SocketIO Web Server (selfAwarenessDelta3-1.py)
+Location: Flask/SocketIO Web Server (selfAwareness-v1.py)
 
 Function: The Wi-Fi nervous system. Handles WebSocket connections, implements the "Singleton Lock" to prevent multiple devices from confusing the Brain, and triggers the "Coma State" to safely pause cognition when the Head disconnects.
 
-### Mind 8: Head
+### Mind 7: Head
 
 Location: Frontend Browser Interface (web/index.html)
 
 Function: The physical sensory harvester and expressive face. Hijacks the smartphone's WebRTC camera and microphone to beam reality to the Brain, whilst simultaneously rendering the procedural, emotion-driven face and decoding the incoming Vocoder voice.
 
-### Mind 9: Curator
+### Mind 8: Curator
 
 Location: Asynchronous Thread (curator.py)
 
@@ -122,7 +116,13 @@ Function: The permanent neural web. Holds clustered weights, geometric concept c
 
 ### Organ 5: Emotion Scoreboard
 
-Component: EmotionScoreboard Class (selfAwarenessDelta3-1.py)
+Component: EmotionScoreboard Class (selfAwareness-v1.py)
 
 Function: The chemical engine. Tracks biological 'Valence' (pleasure/pain) and 'Energy' (lethargic/frantic) based on audio volume, visual velocity, prediction validation, and the subconscious gravity of recalled memories. It physically morphs the facial geometry on the Head.
+
+### Organ 6: Profiler 
+
+Component: Feature Extraction (encoders.py) 
+
+Function: The sensory translator. Compresses massive 2D pixel arrays and 1D audio waveforms into high-dimensional numerical vectors (Profiles) so the system can mathematically compare concepts.
 
