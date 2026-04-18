@@ -1,8 +1,6 @@
 # Project Corely
 
-#### Experiment on computer self awareness using various combined approaches
-
-#### Please do not ask what are the combined approaches are since I designed the architecture by instinct alone and have Gemini vibecoded the idea
+#### Experiment on computer self awareness using various combined approaches. 
 
 ## 
 
@@ -13,20 +11,22 @@
 ### Setup
 
 1. Turn on mobile hotspot on the computer
-2. Open command prompt and type-in ipconfig to find the computer's local IP address. Take note of this IP. This computer's default should be 192.168.137.1
+2. Open command prompt and type-in ipconfig to find your computer's local IPv4 address. Take note of said IP.
 
 ### Run
 
-1. Open 'selfAwarenessDelta3-1.py' and run the code
-2. Once running, open a browser (preferably chrome) and enter https://192.168.137.1:5000 (use your acquired IP address)
-3. You'll be greeted with 'insecure credential' page. Simply click advanced > trust this IP anyway
-4. On the web page, click on the green button in middle once you're ready to start.
-5. If you see a face, you've successfully run Corely!
+1. Open 'Control Panel.py' and run the code
+2. Once open, click on BOOT button on the left to start to program.
+3. Once running, open a browser (preferably chrome) and enter https://[your IPv4]:5000
+4. You'll be greeted with 'insecure credential' page. Simply click advanced > trust this IP anyway
+5. On the web page, click on the green button in middle once you're ready to start.
+6. If you see a face, you've successfully run Corely!
 
 ### Cleanup
 
-1. To close the program, you can either click the X button on the dashboard on the computer, or close the tab on the browser. Both ways work.
-2. Once everything is nicely stopped, open 'dreamMachine2-1.py' to consolidate her new memories.
+1. To close the program, click on the red STOP button.
+2. Then, click on the blue DREAM button to consolidate the new memories. This process takes time, so please do not turn off your computer.
+3. Once done, you may close the control panel.
 
 ## 
 
@@ -34,7 +34,7 @@
 
 # \*\*\* Architecture Map \*\*\*
 
-### Last Updated: 7/4/2026 | Prepared using Gemini
+### Last Updated: 19/4/2026 | Prepared using Gemini
 
 Unit 1 operates as a decentralized digital organism. Her architecture is split into two categories: The Minds (active computational processors) and The Organs (passive physical structures, databases, and regulators).
 
