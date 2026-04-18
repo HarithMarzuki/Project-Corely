@@ -1,6 +1,6 @@
 # Project Corely
 
-#### Project Corely is an experimental AI architecture that models consciousness not as a single loop, but as a biological system. Unit 1 is split into two distinct categories: The Minds (active, asynchronous computational threads) and The Organs (passive physical structures, mathematical regulators, and hierarchical databases).
+#### Project Corely is an experimental AI architecture that models consciousness not as a single loop, but as a biological system. Unit 1 - Corely is split into two distinct categories: The Minds (active, asynchronous computational threads) and The Organs (passive physical structures, mathematical regulators, and hierarchical databases).
 
 #### Everything is monitored and controlled via the Incubator—a retro-styled, zero-lag diagnostic dashboard.
 
