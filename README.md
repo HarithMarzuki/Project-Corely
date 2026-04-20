@@ -57,13 +57,13 @@ OR
     - Top: action monitor, display what is going on in Corely's brain
     - Middle: emotion monitor, display the emotional state of Corely
     - Bottom: Minds monitor, display which minds are active. The list of minds are:
-        M1 -> Core
-        M2 -> Librarian
-        M3 -> Crawler
-        M4 -> Vocoder
-        M5 -> Consolidator
-        M6 -> Bridge
-        M7 -> Face
-        M8 -> Curator
+        a. M1 -> Core
+        b. M2 -> Librarian
+        c. M3 -> Crawler
+        d. M4 -> Vocoder
+        e. M5 -> Consolidator
+        f. M6 -> Bridge
+        g. M7 -> Face
+        h. M8 -> Curator
 
 
