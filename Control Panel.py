@@ -139,10 +139,9 @@ def build_tv_frame(raw_video_bytes):
         vid_layer = no_signal_pil
     else:
         try:
-            vid_img = Image.open(io.BytesIO(base64.b64decode(raw_video_bytes))).convert("RGB")
-            vid_img = vid_img.resize((VID_W, VID_H))
-            b, g, r = vid_img.split()
-            vid_layer = Image.merge("RGB", (r, g, b)).convert("RGBA")
+            # FIX: JPEGs decode as RGB natively. Do not split/merge channels!
+            vid_img = Image.open(io.BytesIO(base64.b64decode(raw_video_bytes))).convert("RGBA")
+            vid_layer = vid_img.resize((VID_W, VID_H))
         except Exception:
             vid_layer = no_signal_pil
             
@@ -320,6 +319,15 @@ def toggle_telemetry(event):
     render_telemetry = not render_telemetry
     telemetry_switch.configure(image=switch_on_img if render_telemetry else switch_off_img)
 
+    if not render_telemetry:
+        action_mon_lbl.configure(image=standby_act)
+        energy_score_lbl.configure(image=standby_eng)
+        valence_score_lbl.configure(image=standby_val)
+        face_mon_lbl.configure(image=ctk_face_neutral)
+        retina_lbl.configure(image=offline_tv_img)
+        fovea_lbl.configure(image=offline_tv_img)
+        minds_eye_lbl.configure(image=offline_tv_img)
+
 telemetry_switch = ctk.CTkLabel(app, text="", image=switch_on_img, fg_color="transparent", width=SWITCH_W, height=SWITCH_H)
 telemetry_switch.place(x=CTRL_BG_X + 55, y=CTRL_BG_Y + 40)
 telemetry_switch.bind("<Button-1>", toggle_telemetry)
@@ -351,7 +359,7 @@ create_sprite_button(app, btn_blue, btn_blue2, CTRL_BG_X + 52, CTRL_BG_Y + 316, 
 ctk.CTkLabel(app, text="DREAM", font=("Consolas", 18, "bold"), text_color="black", fg_color="#88888f").place(x=CTRL_BG_X + 82, y=CTRL_BG_Y + 380, anchor="n")
 
 create_sprite_button(app, btn_yellow, btn_yellow2, CTRL_BG_X + 160, CTRL_BG_Y + 316, trigger_rem_sleep)
-ctk.CTkLabel(app, text="FULL\nCYCLE", font=("Consolas", 18, "bold"), text_color="black", fg_color="#88888f").place(x=CTRL_BG_X + 190, y=CTRL_BG_Y + 380, anchor="n")
+ctk.CTkLabel(app, text="SLEEP", font=("Consolas", 18, "bold"), text_color="black", fg_color="#88888f").place(x=CTRL_BG_X + 190, y=CTRL_BG_Y + 380, anchor="n")
 
 
 # ==========================================
