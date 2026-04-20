@@ -157,6 +157,9 @@ offline_tv_img = build_tv_frame(None)
 core_process = None
 consol_proc = None
 
+def is_process_running(process):
+    return process is not None and process.poll() is None
+
 def read_subprocess_output(process, name):
     for line in iter(process.stdout.readline, ''):
         if line:
@@ -176,7 +179,7 @@ def read_subprocess_output(process, name):
 
 def boot_unit_1():
     global core_process
-    if core_process is None or core_process.poll() is not None:
+    if not is_process_running(core_process):
         log_textbox.insert("end", "\n[SYSTEM] Booting Unit 1 Brain...\n")
         log_textbox.see("end")
         core_process = subprocess.Popen(
@@ -199,6 +202,14 @@ def shutdown_unit_1():
 
 def run_consolidator_independent():
     global consol_proc
+    if is_process_running(core_process):
+        log_textbox.insert("end", "\n[WARNING] DREAM is locked while Unit 1 is awake. Stop or Sleep the core before consolidating.\n")
+        log_textbox.see("end")
+        return
+    if is_process_running(consol_proc):
+        log_textbox.insert("end", "\n[SYSTEM] Mind 5 (Consolidator) is already running.\n")
+        log_textbox.see("end")
+        return
     log_textbox.insert("end", "\n[SYSTEM] Launching Mind 5 (Consolidator)...\n")
     log_textbox.see("end")
     consol_proc = subprocess.Popen(
@@ -210,11 +221,16 @@ def run_consolidator_independent():
 def trigger_rem_sleep():
     global consol_proc
     if sio.connected:
+        if is_process_running(consol_proc):
+            log_textbox.insert("end", "\n[SYSTEM] Mind 5 (Consolidator) is already running.\n")
+            log_textbox.see("end")
+            return
         log_textbox.insert("end", "\n[SYSTEM] Queuing Sleep & Consolidator sequence...\n")
         log_textbox.see("end")
         sio.emit('force_sleep')
         
         def wait_and_consolidate():
+            global consol_proc
             if core_process:
                 core_process.wait()
             app.after(0, log_textbox.insert, "end", "\n[SYSTEM] Core Offline. Triggering REM Sleep...\n")
@@ -237,14 +253,14 @@ def on_closing():
             sio.disconnect()
         except: pass
         
-    if core_process is not None and core_process.poll() is None:
+    if is_process_running(core_process):
         for _ in range(20):
             if core_process.poll() is not None: break
             time.sleep(0.1)
         if core_process.poll() is None:
             core_process.terminate()
 
-    if consol_proc is not None and consol_proc.poll() is None:
+    if is_process_running(consol_proc):
         consol_proc.terminate()
 
     app.destroy()
@@ -506,8 +522,8 @@ def update_dashboard():
     global latest_telemetry_packet, last_telemetry_time
     
     # 1. Update Mind Status Lights (Real-time tracking of the 8 Subprocesses)
-    c_alive = core_process is not None and core_process.poll() is None
-    cn_alive = consol_proc is not None and consol_proc.poll() is None
+    c_alive = is_process_running(core_process)
+    cn_alive = is_process_running(consol_proc)
     br_alive = sio.connected
     head_alive = (time.time() - last_telemetry_time) < 0.5
     
