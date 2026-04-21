@@ -7,29 +7,35 @@
 ## 
 ## 
 
-# System requirement
+# System Requirements
 
-#### NVIDIA GRAPHIC CARDS ARE NECESSARY AS THIS PROGRAM HEAVILY RELY ON CUDA
-
-Minimum
+**Minimum**
 
 - OS: Windows 10 64-bit
-- Processor: Intel Core i5-6500 or AMD Ryzen 3 1200
+- Processor: Intel Core i3 or AMD Ryzen 3
 - Memory: 8 GB RAM
-- Graphics: NVIDIA GeForce GTX 1050 Ti or NVIDIA GeForce GTX 1650
+- Graphics: NVIDIA GeForce GTX 1050 or equivalent with CUDA support, 2 GB VRAM
 - Storage: 5 GB available space
-- Network: Home Wi-Fi router or local LAN connection
-- Additional: Android phone such as Samsung Galaxy A52 / A54, or iPhone 11, with Chrome or Safari and working camera/microphone access
+- Network: Local Wi-Fi or LAN connection
+- Additional Notes: Requires a smartphone or secondary device with a modern browser, camera, and microphone
 
-Recommended
+**Recommended**
 
 - OS: Windows 11 64-bit
-- Processor: Intel Core i5-12400 or AMD Ryzen 5 5600
+- Processor: Intel Core i5 or AMD Ryzen 5
 - Memory: 16 GB RAM
-- Graphics: NVIDIA GeForce GTX 1660 Super, RTX 2060, or RTX 3060
-- Storage: SSD with 10 GB or more available space
-- Network: Stable 5 GHz Wi-Fi or local LAN connection
-- Additional: Recent phone such as iPhone 13, Samsung Galaxy S22, or newer, using Chrome or Safari with camera/microphone enabled
+- Graphics: NVIDIA GeForce GTX 1660, RTX 2060, or better with 4 GB+ VRAM and CUDA support
+- Storage: SSD with 10 GB available space
+- Network: Stable local Wi-Fi or LAN connection
+- Additional Notes: Recent smartphone with Chrome or Safari recommended for best camera/audio compatibility
+
+**Important**
+
+- An NVIDIA CUDA-capable GPU is required for the current build.
+- Project Corely requires two devices in normal use:
+  - a Windows host machine running the core and control panel
+  - a phone or second device acting as the sensory head through the browser
+- Performance may degrade as memory files grow over time.
 
 ##
 ##
