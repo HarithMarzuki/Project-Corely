@@ -2,6 +2,11 @@ import h5py
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
+import time
+
+import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class MemoryExplorer:
     def __init__(self, filepath):
@@ -57,7 +62,7 @@ class MemoryExplorer:
                 f.visititems(print_to_terminal)
                 print("-" * 50)
 
-    def view_visual_memory(self, dataset_path, is_spectrogram=False):
+'''    def view_visual_memory(self, dataset_path, is_spectrogram=False):
         """Displays an image array or spectrogram along with its attributes."""
         with h5py.File(self.filepath, 'r') as f:
             if dataset_path not in f:
@@ -96,34 +101,37 @@ class MemoryExplorer:
                      bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgrey', alpha=0.5))
             plt.show()
 
-    def view_memory_links(self, links_dataset_path):
-        """Visualizes the clustered memories as a network graph."""
-        with h5py.File(self.filepath, 'r') as f:
-            if links_dataset_path not in f:
-                print(f"Error: Links path '{links_dataset_path}' not found.")
-                return
+'''
             
-            edges = f[links_dataset_path][:]
-            
-            G = nx.Graph()
-            G.add_edges_from(edges)
-            
-            plt.figure(figsize=(10, 8))
-            pos = nx.spring_layout(G, seed=42) 
-            nx.draw(G, pos, with_labels=True, node_color='lightblue', 
-                    edge_color='gray', node_size=500, font_size=10, font_weight='bold')
-            
-            plt.title(f"Memory Cluster Links: {links_dataset_path}")
-            plt.show()
-
 # ==========================================
 # Example Usage
 # ==========================================
 if __name__ == "__main__":
-    explorer = MemoryExplorer("Unit1/consolidated_memory.h5")
 
-    # Pass a filename to export to a .txt file
-    explorer.print_structure(output_file="C:/Users/admin/Desktop/Project Corely/Checkers/consolidated_structure.txt")
+    print('Welcome to the attribute viewer')
+    print('\nPlease enter:')
+    print('1 -> to generate report for the consolidated memory')
+    print('2 -> to generate report for the unconsolidated memory')
+    print('3 -> to generate report for both')
+    mem = input('\nInput: ')
+    
+    if mem == '1':
+        explorer = MemoryExplorer(os.path.join(ROOT_DIR, "Unit1", "consolidated_memory.h5"))
+        explorer.print_structure(output_file=os.path.join(ROOT_DIR, "Toolkits", "consolidated_structure.txt"))
+        pass
+    elif mem == '2':
+        explorer = MemoryExplorer(os.path.join(ROOT_DIR, "Unit1", "unconsolidated_memory.h5"))
+        explorer.print_structure(output_file=os.path.join(ROOT_DIR, "Toolkits", "unconsolidated_structure.txt"))
+        pass
+    elif mem == '3':
+        explorer = MemoryExplorer(os.path.join(ROOT_DIR, "Unit1", "consolidated_memory.h5"))
+        explorer.print_structure(output_file=os.path.join(ROOT_DIR, "Toolkits", "consolidated_structure.txt"))
+        explorer = MemoryExplorer(os.path.join(ROOT_DIR, "Unit1", "unconsolidated_memory.h5"))
+        explorer.print_structure(output_file=os.path.join(ROOT_DIR, "Toolkits", "unconsolidated_structure.txt"))
+        pass
+    else:
+        print("Error! Please restart the program")
+        time.sleep(3)
     
     # Or call it empty to print to the terminal
     # explorer.print_structure()
