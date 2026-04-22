@@ -20,9 +20,9 @@ TEMP_DREAM_BUFFER = "Unit1/temp_dream_buffer.h5"
 STATE_DIR = "Unit1/simulation_state"
 
 PRUNE_THRESHOLD = 0.50  
-EPSILON_VISUAL = 0.15   
-EPSILON_AUDIO = 0.20    
-MIN_SAMPLES = 2         
+EPSILON_VISUAL = 0.02   
+EPSILON_AUDIO = 0.10    
+MIN_SAMPLES = 3         
 
 # --- GRAVITY MATH ---
 def get_grid_index(val):
