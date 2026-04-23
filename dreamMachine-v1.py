@@ -10,15 +10,8 @@ import json
 import shutil
 import time
 
-try:
-    from sklearn.cluster import HDBSCAN
-except ImportError:
-    try:
-        import hdbscan
-        HDBSCAN = hdbscan.HDBSCAN
-    except ImportError:
-        print("ERROR: HDBSCAN not found. Please run 'pip install scikit-learn --upgrade'")
-        sys.exit(1)
+from sklearn.cluster import HDBSCAN
+
 
 from encoders import get_visual_profile
 from curator import CognitiveCurator
