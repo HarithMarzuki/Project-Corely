@@ -24,21 +24,20 @@ def get_visual_profile(image_array):
 
 def get_audio_profile(audio_basket):
     """
-    "Shadow Encoding" - Translates a raw audio stick into a 3D concept.
+    "Shadow Encoding" - Translates a raw audio stick into a 2D concept.
     X: Forward Shadow (Attack/Onset Shape)
     Y: Backward Shadow (Decay/Tail Shape)
-    Z: Acoustic Roughness (Timbre/Chaos)
     """
     audio = np.array(audio_basket, dtype=np.float32).flatten()
     
     # Safety Check: If the basket is empty or too small, return zero-concept
     if len(audio) < 20: 
-        return [0.0, 0.0, 0.0]
+        return [0.0, 0.0]
 
     # 1. Energy Normalization (Loudness Invariance)
     std_val = np.std(audio)
     if std_val < 1e-6: # Prevent division-by-zero on pure digital silence
-        return [0.0, 0.0, 0.0]
+        return [0.0, 0.0]
     
     norm_audio = audio / std_val
 
@@ -54,7 +53,7 @@ def get_audio_profile(audio_basket):
     proportions = numerators / denominators
     
     N = len(proportions)
-    if N == 0: return [0.0, 0.0, 0.0]
+    if N == 0: return [0.0, 0.0]
 
     # 5. The Gaussian Fovea (Dynamic Bell Curve)
     # We set the 'spread' so the curve decays to roughly 1% at the very end of the sound
@@ -68,8 +67,5 @@ def get_audio_profile(audio_basket):
     # 6. Cast the Shadows & Squash (Duration Invariance via division by N)
     X = float(np.sum(proportions * weights_forward) / N)
     Y = float(np.sum(proportions * weights_backward) / N)
-    
-    # 7. Acoustic Roughness
-    Z = float(np.std(proportions))
 
-    return [X, Y, Z]
+    return [X, Y]

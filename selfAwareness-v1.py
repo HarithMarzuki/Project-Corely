@@ -272,7 +272,6 @@ def vocoder_worker():
             max_val = np.max(np.abs(final_audio))
             if max_val > 0: final_audio = (final_audio / max_val) * vol * 0.8
             
-            # FIX: Explicit Unicast! Only send raw binary audio to the physical Smartphone Head.
             try:
                 if active_head_sid:
                     socketio.emit('vocal_audio', final_audio.astype(np.float32).tobytes(), room=active_head_sid)
@@ -403,14 +402,16 @@ def librarian_worker():
 
     def save_audio(a_data, start_t, end_t, paired_vis_list, a_val, a_egy):
         nonlocal last_aud_key, aud_counter
-        aud_prof = get_audio_profile(a_data)
+        aud_prof = get_audio_profile(a_data) # [MIGRATION]: This is now 2D
         ts_str = datetime.datetime.fromtimestamp(end_t).strftime("%Y-%m-%d_%H-%M-%S")
         
         temp_cluster = 'None'
         if static_cluster_cache['audio']:
             best_c, min_d = None, 999.0
             for c in static_cluster_cache['audio']:
-                d = np.linalg.norm(np.array(aud_prof) - c['profile'])
+                # [MIGRATION FIX]: Safely clamp the static 3D target profile to match the incoming 2D profile length
+                target_prof = c['profile'][:len(aud_prof)]
+                d = np.linalg.norm(np.array(aud_prof) - np.array(target_prof))
                 if d < min_d: min_d, best_c = d, c['id']
             if min_d < MAX_AUD_DIST: temp_cluster = best_c
         
@@ -551,7 +552,7 @@ def execute_story(story, memory_id, raw_mems, drive_type):
     elif drive_type == 'DIGEST_AUDIO' and s_type == 'REFLECT':
         for i, m_id in enumerate(seq):
             if i == len(seq) - 1 and m_id.startswith('aud_'):
-                target_prof = raw_mems[m_id].attrs['aud_profile']
+                target_prof = np.array(raw_mems[m_id].attrs['aud_profile'])
                 minds_eye_queue.put((None, list(target_prof), 'LISTENING FOR CUE...', m_id))
                 matched = False
                 while not librarian_new_audio_queue.empty(): librarian_new_audio_queue.get() 
@@ -560,7 +561,8 @@ def execute_story(story, memory_id, raw_mems, drive_type):
                     time.sleep(0.1)
                     while not librarian_new_audio_queue.empty():
                         new_prof = librarian_new_audio_queue.get()
-                        if np.linalg.norm(np.array(new_prof) - np.array(target_prof)) < MAX_AUD_DIST:
+                        # [MIGRATION FIX]: Dynamically clamp target profile based on the live 2D profile length
+                        if np.linalg.norm(np.array(new_prof) - target_prof[:len(new_prof)]) < MAX_AUD_DIST:
                             matched = True; break
                     if matched: break
                 
@@ -648,7 +650,9 @@ def crawler_worker():
                         if active_aud_clusters:
                             best_c_id, min_dist = None, 999.0
                             for c_id in active_aud_clusters.keys():
-                                dist = np.linalg.norm(np.array(data) - np.array(active_aud_clusters[c_id].attrs['aud_profile']))
+                                # [MIGRATION FIX]: Safely clamp 3D targets to match 2D live data
+                                target_prof = np.array(active_aud_clusters[c_id].attrs['aud_profile'])[:len(data)]
+                                dist = np.linalg.norm(np.array(data) - target_prof)
                                 if dist < min_dist: min_dist, best_c_id = dist, c_id
                                 
                             if best_c_id and min_dist < MAX_AUD_DIST:
@@ -729,7 +733,6 @@ try:
             if now - last_telemetry_time > 1.0:
                 last_telemetry_time = now
                 try:
-                    # FIX: Explicitly target the Incubator SID
                     if incubator_sid:
                         socketio.emit('dashboard_telemetry', {'is_coma': True, 'state': 'COMA (AWAITING SENSORY LINK)'}, room=incubator_sid)
                 except: pass
@@ -907,7 +910,6 @@ try:
                 last_web_update = now
                 live_talk_amp = float(np.random.uniform(0.2, 0.8)) if is_speaking else 0.0
                 try:
-                    # FIX: Explicit Unicast to the Smartphone Head
                     if active_head_sid:
                         socketio.emit('emotion_update', {'valence': float(organ_5_emotion.valence), 'energy': float(organ_5_emotion.energy), 'talk': live_talk_amp}, room=active_head_sid)
                 except: pass
@@ -919,10 +921,7 @@ try:
 
             minds_eye_alpha = max(0.0, minds_eye_alpha - 0.02)
 
-            # ==========================================
-            # THE TELEMETRY BROADCAST
-            # ==========================================
-            if now - last_telemetry_time > 0.05: # ~20 FPS Throttle
+            if now - last_telemetry_time > 0.05: 
                 last_telemetry_time = now
                 
                 retina_view = cv2.resize(frame, (427, 240))
@@ -950,7 +949,6 @@ try:
                 }
                 
                 try:
-                    # FIX: Explicit Unicast to the Incubator. The Head will never receive this!
                     if incubator_sid:
                         socketio.emit('dashboard_telemetry', payload, room=incubator_sid)
                 except: pass

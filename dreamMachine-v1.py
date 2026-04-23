@@ -9,7 +9,17 @@ import numpy as np
 import json
 import shutil
 import time
-from sklearn.cluster import DBSCAN
+
+try:
+    from sklearn.cluster import HDBSCAN
+except ImportError:
+    try:
+        import hdbscan
+        HDBSCAN = hdbscan.HDBSCAN
+    except ImportError:
+        print("ERROR: HDBSCAN not found. Please run 'pip install scikit-learn --upgrade'")
+        sys.exit(1)
+
 from encoders import get_visual_profile
 from curator import CognitiveCurator
 
@@ -20,9 +30,8 @@ TEMP_DREAM_BUFFER = "Unit1/temp_dream_buffer.h5"
 STATE_DIR = "Unit1/simulation_state"
 
 PRUNE_THRESHOLD = 0.50  
-EPSILON_VISUAL = 0.02   
-EPSILON_AUDIO = 0.10    
-MIN_SAMPLES = 3         
+MIN_CLUSTER_SIZE = 3    
+MIN_SAMPLES = 2         
 
 # --- GRAVITY MATH ---
 def get_grid_index(val):
@@ -135,26 +144,32 @@ def perform_deep_sleep():
             vis_clust_grp = clust_grp.create_group('visual')
             aud_clust_grp = clust_grp.create_group('audio')
 
-            print("\n--- PHASE 3: VISUAL ABSTRACTION (SPATIAL MAPPING) ---")
+            print("\n--- PHASE 3: VISUAL ABSTRACTION (HDBSCAN SPATIAL MAPPING) ---")
             if all_visuals:
                 v_profiles = np.array([raw_grp[k].attrs['vis_profile'] for k in all_visuals])
-                v_clustering = DBSCAN(eps=EPSILON_VISUAL, min_samples=MIN_SAMPLES, metric='euclidean').fit(v_profiles)
+                v_clustering = HDBSCAN(min_cluster_size=MIN_CLUSTER_SIZE, min_samples=MIN_SAMPLES, metric='euclidean').fit(v_profiles)
                 
                 v_clusters = {}
                 for idx, label in enumerate(v_clustering.labels_):
                     if label == -1: continue 
                     if label not in v_clusters: v_clusters[label] = []
-                    v_clusters[label].append(all_visuals[idx])
+                    v_clusters[label].append((all_visuals[idx], v_clustering.probabilities_[idx]))
                     
-                for c_id, members in v_clusters.items():
+                for c_id, members_data in v_clusters.items():
+                    members = [m[0] for m in members_data]
+                    probs = [m[1] for m in members_data]
+                    
                     total_w = sum(raw_grp[m].attrs.get('weight', 1.0) for m in members)
                     avg_val = np.mean([raw_grp[m].attrs.get('valence', 0.0) for m in members])
                     avg_egy = np.mean([raw_grp[m].attrs.get('energy', 0.0) for m in members])
                     
+                    # Blend visuals perfectly based on HDBSCAN probability score
+                    prob_sum = sum(probs)
+                    if prob_sum == 0: prob_sum = 1e-6
+                    
                     c_img = np.zeros_like(raw_grp[members[0]][:], dtype=np.float32)
-                    for m in members:
-                        w = raw_grp[m].attrs.get('weight', 1.0)
-                        c_img += raw_grp[m][:] * (w / total_w)
+                    for i, m in enumerate(members):
+                        c_img += raw_grp[m][:] * (probs[i] / prob_sum)
                     
                     c_img = np.clip(c_img, 0, 255).astype(np.uint8)
                     c_prof = get_visual_profile(c_img)
@@ -179,35 +194,38 @@ def perform_deep_sleep():
                             
                 print(f"-> Formed {len(v_clusters)} Visual Concepts mapped across spatial grid.")
 
-            print("\n--- PHASE 4: ACOUSTIC ABSTRACTION (SPATIAL MAPPING) ---")
+            print("\n--- PHASE 4: ACOUSTIC ABSTRACTION (HDBSCAN SPATIAL MAPPING) ---")
             if all_audios:
+                # [MIGRATION FIX] Force old 3D audio memory profiles down to 2D
+                for m_id in all_audios:
+                    prof = list(raw_grp[m_id].attrs['aud_profile'])
+                    if len(prof) > 2:
+                        raw_grp[m_id].attrs['aud_profile'] = prof[:2]
+
                 a_profiles = np.array([raw_grp[k].attrs['aud_profile'] for k in all_audios])
-                a_clustering = DBSCAN(eps=EPSILON_AUDIO, min_samples=MIN_SAMPLES, metric='euclidean').fit(a_profiles)
+                a_clustering = HDBSCAN(min_cluster_size=MIN_CLUSTER_SIZE, min_samples=MIN_SAMPLES, metric='euclidean').fit(a_profiles)
                 
                 a_clusters = {}
                 for idx, label in enumerate(a_clustering.labels_):
                     if label == -1: continue 
                     if label not in a_clusters: a_clusters[label] = []
-                    a_clusters[label].append(all_audios[idx])
+                    a_clusters[label].append((all_audios[idx], a_clustering.probabilities_[idx]))
                     
-                for c_id, members in a_clusters.items():
+                for c_id, members_data in a_clusters.items():
+                    members = [m[0] for m in members_data]
+                    probs = [m[1] for m in members_data]
+                    
                     total_w = sum(raw_grp[m].attrs.get('weight', 1.0) for m in members)
                     avg_val = np.mean([raw_grp[m].attrs.get('valence', 0.0) for m in members])
                     avg_egy = np.mean([raw_grp[m].attrs.get('energy', 0.0) for m in members])
                     
-                    profs = [raw_grp[m].attrs['aud_profile'] for m in members]
-                    geo_center = np.mean(profs, axis=0)
-                    
-                    best_score = -1.0
-                    alpha_id = None
-                    for m in members:
-                        dist_to_center = float(np.linalg.norm(np.array(raw_grp[m].attrs['aud_profile']) - geo_center))
-                        score = raw_grp[m].attrs.get('weight', 1.0) / (dist_to_center + 0.001) 
-                        if score > best_score:
-                            best_score, alpha_id = score, m
+                    # Native HDBSCAN probability allows us to instantly find the "Alpha" memory
+                    alpha_idx = int(np.argmax(probs))
+                    alpha_id = members[alpha_idx]
                             
                     alpha_audio_data = raw_grp[alpha_id][:]
                     alpha_profile = raw_grp[alpha_id].attrs['aud_profile']
+                    
                     member_dists = {m: float(np.linalg.norm(np.array(alpha_profile) - np.array(raw_grp[m].attrs['aud_profile']))) for m in members}
                         
                     c_name = f"a_concept_{c_id}"
