@@ -392,7 +392,7 @@ log_textbox.place(x=MACARONI_X + 71, y=MACARONI_Y + 33)
 
 boot_text = (
     "Project Corely - by Harith Marzuki\n"
-    "Version 1.0 | Released date: 30-Apr-2026\n"
+    "Version 0.1.0-alpha | Released date: 23-Apr-2026\n"
     "For more information, visit https://github.com/HarithMarzuki/Project-Corely\n"
     "----------------------------------------------------------------------\n\n"
     "System is ready to start...\n\n"
