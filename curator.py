@@ -52,14 +52,13 @@ class CognitiveCurator:
             
         print(f"\n[CURATOR] Initiating REM Sleep Cycle...")
         
-        # 1. The Afterimage Seed (Fixed delimiter to read gene.txt properly)
+        # 1. The Afterimage Seed
         try:
             v_layer_0 = np.load(os.path.join(self.state_dir, "v_layer_0.npy"))
             dna_matrix = np.loadtxt("Unit1/gene.txt", delimiter=",")
             
             v_1d = np.mean(v_layer_0, axis=(0, 2)) / 511.0 
             
-            # Ensure dimensions align for dot product
             if len(v_1d) == dna_matrix.shape[0]:
                 scrambled = np.dot(v_1d, dna_matrix)
                 seed_val = int(np.abs(np.sum(scrambled)) * 1000000) % (2**32 - 1)
@@ -71,26 +70,61 @@ class CognitiveCurator:
             random.seed(time.time())
             print(f"[CURATOR] Using standard temporal seed for dreams. (Reason: {e})")
 
-        num_stories = max(1, int(math.log(max(2, num_memories_absorbed))))
-        print(f"[CURATOR] Generating {num_stories} dream sequences tonight.")
-
         with h5py.File(self.deep_memory_file, 'a') as f:
             raw_mems = f.get('raw_memories')
             if not raw_mems: return
-            all_ids = list(raw_mems.keys())
+            
+            vis_mems = [k for k in raw_mems.keys() if k.startswith('vis_')]
+            aud_mems = [k for k in raw_mems.keys() if k.startswith('aud_')]
 
-            if not all_ids: return
+            if not vis_mems and not aud_mems: return
 
-            for _ in range(num_stories):
-                start_id = random.choice(all_ids)
-                shuffled_tally = list(tally)
-                random.shuffle(shuffled_tally)
+            # 2. Count Existing Capacity
+            current_vis_stories = 0
+            for v_id in vis_mems:
+                current_vis_stories += len(json.loads(raw_mems[v_id].attrs.get('stories', '[]')))
                 
-                roll = shuffled_tally[random.randint(0, len(shuffled_tally)-1)] if shuffled_tally else 0
-                mode = 'IMAGINE' if roll == 1 else 'REFLECT'
-                energy = random.randint(1, 20)
-                
-                self._build_story(start_id, mode, energy, random_func=random.random, h5_file=f)
+            current_aud_stories = 0
+            for a_id in aud_mems:
+                current_aud_stories += len(json.loads(raw_mems[a_id].attrs.get('stories', '[]')))
+
+            # 3. Calculate Biological Target (The Square Root Neuroplasticity Formula)
+            MATURITY_POINT = 10000
+            target_vis_stories = int(math.sqrt(MATURITY_POINT * len(vis_mems))) if vis_mems else 0
+            target_aud_stories = int(math.sqrt(MATURITY_POINT * len(aud_mems))) if aud_mems else 0
+
+            # 4. Find the Delta
+            delta_vis = target_vis_stories - current_vis_stories
+            delta_aud = target_aud_stories - current_aud_stories
+
+            print(f"[CURATOR] Sights: {len(vis_mems)} memories -> Target: {target_vis_stories} stories (Current: {current_vis_stories}, Delta: {delta_vis})")
+            print(f"[CURATOR] Sounds: {len(aud_mems)} memories -> Target: {target_aud_stories} stories (Current: {current_aud_stories}, Delta: {delta_aud})")
+
+            # 5. Build Sights
+            if delta_vis > 0 and vis_mems:
+                for _ in range(delta_vis):
+                    start_id = random.choice(vis_mems)
+                    shuffled_tally = list(tally)
+                    random.shuffle(shuffled_tally)
+                    
+                    roll = shuffled_tally[random.randint(0, len(shuffled_tally)-1)] if shuffled_tally else 0
+                    mode = 'IMAGINE' if roll == 1 else 'REFLECT'
+                    energy = random.randint(1, 20)
+                    
+                    self._build_story(start_id, mode, energy, random_func=random.random, h5_file=f)
+            
+            # 6. Build Sounds
+            if delta_aud > 0 and aud_mems:
+                for _ in range(delta_aud):
+                    start_id = random.choice(aud_mems)
+                    shuffled_tally = list(tally)
+                    random.shuffle(shuffled_tally)
+                    
+                    roll = shuffled_tally[random.randint(0, len(shuffled_tally)-1)] if shuffled_tally else 0
+                    mode = 'IMAGINE' if roll == 1 else 'REFLECT'
+                    energy = random.randint(1, 20)
+                    
+                    self._build_story(start_id, mode, energy, random_func=random.random, h5_file=f)
                 
         print(f"[CURATOR] REM Sleep Sequence Complete.")
 

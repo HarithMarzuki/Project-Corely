@@ -821,8 +821,11 @@ try:
             decision = None
             override_save = False
 
-            if entropy_engine.random() < 0.02: wandering_drive = 1.0
-            else: wandering_drive = max(0.1, wandering_drive - 0.02)
+            # --- WANDERING DRIVE (BIOLOGICAL BOREDOM) ---
+            if live_audio_vol < NOISE_THRESHOLD and abs(v_velocity) < 2.0:
+                wandering_drive = min(1.0, wandering_drive + 0.01) # Builds up in quiet rooms
+            else:
+                wandering_drive = max(0.1, wandering_drive - 0.05) # Distracted by noise/motion
                 
             norm_vel = min(abs(v_velocity) / 10.0, 1.0)
             vis_probs = softmax([norm_vel * 2.5, (coh_perc / 100.0) * prediction_multiplier * 1.5, wandering_drive * 1.5])
@@ -894,7 +897,9 @@ try:
                     visual_queue.put((frame, ts_str, time.time(), float(abs(v_velocity)), 1.0, organ_5_emotion.valence, organ_5_emotion.energy))
                     minds_eye_alpha, minds_eye_status = 0.0, "INTERRUPTED"
                 elif decision == 'PREDICT' and crawler_cmd_queue.empty(): crawler_cmd_queue.put(('PREDICT_VISUAL', live_3d))
-                elif decision == 'WANDER' and crawler_cmd_queue.empty(): crawler_cmd_queue.put(('WANDER', None))
+                elif decision == 'WANDER' and crawler_cmd_queue.empty(): 
+                    crawler_cmd_queue.put(('WANDER', None))
+                    wandering_drive = 0.1 # Reset boredom!
 
             is_painful = live_audio_vol > 0.5 or abs(v_velocity) > 40.0
             is_soothing = (0.001 < live_audio_vol < NOISE_THRESHOLD) and abs(v_velocity) < 5.0 
@@ -927,10 +932,6 @@ try:
                 retina_view = cv2.resize(frame, (427, 240))
                 fovea_view = cv2.resize(cp.asnumpy(cp.abs(gpu_fovea - h_norm) < COHERENCE_TOLERANCE).astype(np.uint8)*255, (427, 240), interpolation=cv2.INTER_NEAREST)
                 me_display = cv2.addWeighted(minds_eye_img, minds_eye_alpha, np.zeros_like(minds_eye_img), 1-minds_eye_alpha, 0)
-                
-                _, ret_jpg = cv2.imencode('.jpg', retina_view, [int(cv2.IMWRITE_JPEG_QUALITY), 60])
-                _, fov_jpg = cv2.imencode('.jpg', fovea_view, [int(cv2.IMWRITE_JPEG_QUALITY), 60])
-                _, me_jpg = cv2.imencode('.jpg', me_display, [int(cv2.IMWRITE_JPEG_QUALITY), 60])
                 
                 action_map = {'SAVE':"MEMORIZING", 'PREDICT':"INQUIRING", 'WANDER':"DAYDREAMING", 'DIGEST':"DIGESTING AUDIO", 'WAITING FOR FLOOR':"WAITING"}
                 
