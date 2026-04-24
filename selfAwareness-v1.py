@@ -402,14 +402,13 @@ def librarian_worker():
 
     def save_audio(a_data, start_t, end_t, paired_vis_list, a_val, a_egy):
         nonlocal last_aud_key, aud_counter
-        aud_prof = get_audio_profile(a_data) # [MIGRATION]: This is now 2D
+        aud_prof = get_audio_profile(a_data) 
         ts_str = datetime.datetime.fromtimestamp(end_t).strftime("%Y-%m-%d_%H-%M-%S")
         
         temp_cluster = 'None'
         if static_cluster_cache['audio']:
             best_c, min_d = None, 999.0
             for c in static_cluster_cache['audio']:
-                # [MIGRATION FIX]: Safely clamp the static 3D target profile to match the incoming 2D profile length
                 target_prof = c['profile'][:len(aud_prof)]
                 d = np.linalg.norm(np.array(aud_prof) - np.array(target_prof))
                 if d < min_d: min_d, best_c = d, c['id']
@@ -561,7 +560,6 @@ def execute_story(story, memory_id, raw_mems, drive_type):
                     time.sleep(0.1)
                     while not librarian_new_audio_queue.empty():
                         new_prof = librarian_new_audio_queue.get()
-                        # [MIGRATION FIX]: Dynamically clamp target profile based on the live 2D profile length
                         if np.linalg.norm(np.array(new_prof) - target_prof[:len(new_prof)]) < MAX_AUD_DIST:
                             matched = True; break
                     if matched: break
@@ -650,7 +648,6 @@ def crawler_worker():
                         if active_aud_clusters:
                             best_c_id, min_dist = None, 999.0
                             for c_id in active_aud_clusters.keys():
-                                # [MIGRATION FIX]: Safely clamp 3D targets to match 2D live data
                                 target_prof = np.array(active_aud_clusters[c_id].attrs['aud_profile'])[:len(data)]
                                 dist = np.linalg.norm(np.array(data) - target_prof)
                                 if dist < min_dist: min_dist, best_c_id = dist, c_id
@@ -932,6 +929,11 @@ try:
                 retina_view = cv2.resize(frame, (427, 240))
                 fovea_view = cv2.resize(cp.asnumpy(cp.abs(gpu_fovea - h_norm) < COHERENCE_TOLERANCE).astype(np.uint8)*255, (427, 240), interpolation=cv2.INTER_NEAREST)
                 me_display = cv2.addWeighted(minds_eye_img, minds_eye_alpha, np.zeros_like(minds_eye_img), 1-minds_eye_alpha, 0)
+                
+                # RE-ADDED: Image Compression Bytes
+                _, ret_jpg = cv2.imencode('.jpg', retina_view, [int(cv2.IMWRITE_JPEG_QUALITY), 60])
+                _, fov_jpg = cv2.imencode('.jpg', fovea_view, [int(cv2.IMWRITE_JPEG_QUALITY), 60])
+                _, me_jpg = cv2.imencode('.jpg', me_display, [int(cv2.IMWRITE_JPEG_QUALITY), 60])
                 
                 action_map = {'SAVE':"MEMORIZING", 'PREDICT':"INQUIRING", 'WANDER':"DAYDREAMING", 'DIGEST':"DIGESTING AUDIO", 'WAITING FOR FLOOR':"WAITING"}
                 
