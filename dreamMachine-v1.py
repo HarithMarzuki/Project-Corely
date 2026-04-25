@@ -10,8 +10,15 @@ import json
 import shutil
 import time
 
-from sklearn.cluster import HDBSCAN
-
+try:
+    from sklearn.cluster import HDBSCAN
+except ImportError:
+    try:
+        import hdbscan
+        HDBSCAN = hdbscan.HDBSCAN
+    except ImportError:
+        print("ERROR: HDBSCAN not found. Please run 'pip install scikit-learn --upgrade'")
+        sys.exit(1)
 
 from encoders import get_visual_profile
 from curator import CognitiveCurator
@@ -110,7 +117,8 @@ def perform_deep_sleep():
 
             print("\n--- PHASE 2: INGESTING SHALLOW MEMORY ---")
             if os.path.exists(UNCONSOLIDATED_FILE):
-                with h5py.File(UNCONSOLIDATED_FILE, 'r+') as u_db:
+                # FIX: Open in read-only mode so we don't lock it for modification
+                with h5py.File(UNCONSOLIDATED_FILE, 'r') as u_db:
                     if 'deposit' in u_db:
                         dep_grp = u_db['deposit']
                         new_keys = list(dep_grp.keys())
@@ -125,9 +133,14 @@ def perform_deep_sleep():
                                 
                                 if 'valence' not in dset.attrs: dset.attrs['valence'] = 0.0
                                 if 'energy' not in dset.attrs: dset.attrs['energy'] = 0.0
-                                
-                            del dep_grp[k]
-                        print(f"-> Absorbed {num_absorbed} new memories into Dream Buffer.")
+                
+                # FIX: After safely closing the file, delete it from the hard drive entirely!
+                try:
+                    os.remove(UNCONSOLIDATED_FILE)
+                    print(f"-> Absorbed {num_absorbed} new memories into Dream Buffer.")
+                    print("-> Purged Shallow Memory drive to reclaim physical disk space.")
+                except Exception as e:
+                    print(f"-> Absorbed {num_absorbed} memories, but failed to purge Shallow Memory file: {e}")
 
             all_visuals = [k for k in raw_grp.keys() if raw_grp[k].attrs.get('type') == 'visual']
             all_audios = [k for k in raw_grp.keys() if raw_grp[k].attrs.get('type') == 'audio']
