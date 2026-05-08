@@ -852,21 +852,24 @@ try:
                 prev_val = current_validation
                 
                 if expected_profile is not None:
-                    dist = np.linalg.norm(np.array(live_3d) - np.array(expected_profile))
-                    
-                    prediction_tally.append(1 if dist <= (MAX_VIS_DIST / 2.0) else 0)
-                    if len(prediction_tally) > 10: prediction_tally.pop(0)
+                    # FIX 2: Mathematical Safety Net
+                    if len(live_3d) == len(expected_profile):
+                        dist = np.linalg.norm(np.array(live_3d) - np.array(expected_profile))
+                        
+                        prediction_tally.append(1 if dist <= (MAX_VIS_DIST / 2.0) else 0)
+                        if len(prediction_tally) > 10: prediction_tally.pop(0)
 
-                    if dist < 0.20: 
-                        current_validation = min(1.0, current_validation + 0.15)
-                        prediction_multiplier = min(3.0, prediction_multiplier + 0.5) 
-                        minds_eye_status = f"VALIDATED! [{dist:.2f}]"
-                        is_pleasureful = True 
-                    elif dist > 0.45: 
-                        current_validation = max(0.0, current_validation - 0.25)
-                        prediction_multiplier = 1.0 
-                        minds_eye_status = f"SURPRISE! [{dist:.2f}]"
-                        override_save = True 
+                        if dist < 0.20: 
+                            current_validation = min(1.0, current_validation + 0.15)
+                            prediction_multiplier = min(3.0, prediction_multiplier + 0.5) 
+                            minds_eye_status = f"VALIDATED! [{dist:.2f}]"
+                            is_pleasureful = True 
+                        elif dist > 0.45: 
+                            current_validation = max(0.0, current_validation - 0.25)
+                            prediction_multiplier = 1.0 
+                            minds_eye_status = f"SURPRISE! [{dist:.2f}]"
+                            override_save = True 
+                            
                     expected_profile, expected_id = None, None
 
                 current_validation += (0.5 - current_validation) * 0.05 
@@ -879,8 +882,11 @@ try:
                         minds_eye_img = np.zeros((240, 427, 3), dtype=np.uint8)
                         cv2.putText(minds_eye_img, "[ ACOUSTIC ]", (150, 120), 0, 0.6, (255, 150, 50), 2)
                     minds_eye_status = c_type
-                    if "AUDIO" not in c_type and "SYNTHESIS" not in c_type and "VIS" not in c_type: 
+                    
+                    # FIX 1: Explicitly target ONLY visual predictions
+                    if c_type == 'PREDICTION': 
                         expected_profile, expected_id = c_prof, c_id
+                        
                     minds_eye_alpha = 1.0
                 except queue.Empty: pass
 
