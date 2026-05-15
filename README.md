@@ -40,6 +40,30 @@
 ##
 ##
 
+# Dependencies
+
+Project Corely is a Python-based experimental AI architecture. It requires:
+
+- Python 3
+- NumPy
+- SciPy
+- h5py
+- OpenCV
+- CuPy with CUDA support
+- Flask
+- Flask-SocketIO
+- python-socketio
+- CustomTkinter
+- Pillow
+- urllib3
+- scikit-learn / hdbscan
+- matplotlib
+- networkx
+- cryptography
+
+##
+##
+
 # How to use
 
 ### Setup
