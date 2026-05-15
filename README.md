@@ -61,6 +61,8 @@ Project Corely is a Python-based experimental AI architecture. It requires:
 - networkx
 - cryptography
 
+(Use 'pip install -r requirement.txt' to immediately install all of them)
+
 ##
 ##
 
