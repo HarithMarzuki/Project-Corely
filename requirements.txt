@@ -1,0 +1,18 @@
+numpy
+scipy
+h5py
+opencv-python
+flask
+flask-socketio
+python-socketio
+customtkinter
+pillow
+urllib3
+scikit-learn
+hdbscan
+matplotlib
+networkx
+
+# GPU acceleration. Choose the CuPy package that matches your CUDA version.
+# Use cupy-cuda11x instead if your system uses CUDA 11.
+cupy-cuda12x
